@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gift</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow: hidden;
+      }
+
+      .gift-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        transition: all 0.5s ease;
+      }
+
+      .gift-modal {
+        background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        border-radius: 20px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(255, 154, 158, 0.4);
+        position: relative;
+        max-width: 400px;
+        width: 90%;
+        transform: scale(1);
+        transition: transform 0.3s ease;
+      }
+
+      .gift-modal::before {
+        content: '🎁';
+        font-size: 60px;
+        display: block;
+        margin-bottom: 20px;
+        animation: float 2s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+
+      .gift-message {
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        margin-bottom: 30px;
+      }
+
+      .gift-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .gift-btn {
+        padding: 12px 30px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 100px;
+      }
+
+      .confirm-gift-btn {
+        background-color: #fff;
+        color: #ff6b81;
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.4);
+      }
+
+      .confirm-gift-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.6);
+      }
+
+      .cancel-gift-btn {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: #fff;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+      }
+
+      .cancel-gift-btn:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-3px);
+      }
+
+      .gift-btn.grow {
+        transform: scale(1.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      .gift-btn.shrink {
+        transform: scale(0.8);
+        opacity: 0.8;
+      }
+
+      .popup-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .popup-container.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .sticky-note {
+        position: absolute;
+        padding: 15px 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        font-size: 14px;
+        font-weight: 500;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        max-width: 200px;
+        word-wrap: break-word;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .sticky-note.show {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .sticky-note::before {
+        content: '💗';
+        margin-right: 5px;
+      }
+
+      .sticky-note.pink {
+        background-color: #fff0f6;
+        color: #eb2f96;
+      }
+
+      .sticky-note.purple {
+        background-color: #f9f0ff;
+        color: #9254de;
+      }
+
+      .sticky-note.blue {
+        background-color: #e6f7ff;
+        color: #1890ff;
+      }
+
+      .sticky-note.green {
+        background-color: #f0f9eb;
+        color: #52c41a;
+      }
+
+      .sticky-note.orange {
+        background-color: #fff7e6;
+        color: #fa8c16;
+      }
+      .sticky-note.skyblue {
+        background-color: #e6f7ff;
+        color: skyblue;
+      }
+
+      .sticky-note.clicked {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        z-index: 1001;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0) rotate(var(--rotation));
+        }
+        25% {
+          transform: translateX(-3px) rotate(var(--rotation));
+        }
+        75% {
+          transform: translateX(3px) rotate(var(--rotation));
+        }
+      }
+
+      .sticky-note.shake {
+        animation: shake 0.8s ease-in-out;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 礼物确认弹窗 -->
+      <div
+        class="gift-container"
+        v-if="showGiftContainer"
+        :style="{ opacity: giftContainerOpacity, pointerEvents: giftContainerPointerEvents }"
+      >
+        <div class="gift-modal">
+          <div class="gift-message">{{ giftMessage }}</div>
+          <div class="gift-buttons">
+            <!-- 初始按钮 -->
+            <template v-if="!showSecondaryButtons">
+              <button
+                class="gift-btn confirm-gift-btn"
+                @click="handleInitialConfirm"
+                :class="{ 'grow': initialConfirmGrowing }"
+              >
+                查收
+              </button>
+              <button
+                class="gift-btn cancel-gift-btn"
+                @click="handleInitialCancel"
+                :class="{ 'shrink': initialCancelShrinking }"
+              >
+                取消
+              </button>
+            </template>
+            <!-- 二次确认按钮 -->
+            <template v-else>
+              <button
+                class="gift-btn confirm-gift-btn"
+                @click="handleNewConfirm"
+                :class="{ 'grow': newConfirmGrowing }"
+              >
+                确认
+              </button>
+              <button
+                class="gift-btn cancel-gift-btn"
+                @click="handleNewCancel"
+                :class="{ 'shrink': newCancelShrinking }"
+              >
+                取消
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-container" :class="{ 'active': showPopupContainer }">
+        <!-- 动态生成的弹窗 -->
+        <div
+          v-for="note in notes"
+          :key="note.id"
+          class="sticky-note"
+          :class="[
+            note.theme,
+            { 'show': note.show },
+            { 'shake': note.isShaking },
+            { 'clicked': note.isClicked }
+          ]"
+          :style="{
+            left: note.left + 'px',
+            top: note.top + 'px',
+            transform: `scale(${note.scale}) rotate(${note.rotation}deg)`,
+            opacity: note.opacity,
+            '--rotation': note.rotation + 'deg',
+            boxShadow: note.boxShadow,
+            zIndex: note.zIndex
+          }"
+          @click="handleNoteClick(note)"
+        >
+          {{ note.message }}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      new Vue({
+        el: '#app',
+        data: {
+          showGiftContainer: true,
+          giftContainerOpacity: 1,
+          giftContainerPointerEvents: 'auto',
+          giftMessage: '你有一份礼物确认要查收吗？',
+          showSecondaryButtons: false,
+          initialConfirmGrowing: false,
+          initialCancelShrinking: false,
+          newConfirmGrowing: false,
+          newCancelShrinking: false,
+          showPopupContainer: false,
+          messages: [
+            '天冷加衣',
+            '保持好心情',
+            '别熬夜',
+            '上班记得摸鱼',
+            '生日快乐~',
+            '珍惜每一刻',
+            '多喝水哦~',
+            '早点休息',
+            '顺顺利利',
+            '别太累啦，偶尔偷偷懒也好',
+            '要相信自己哦',
+            '把烦恼抛在脑后',
+          ],
+          themes: ['pink', 'purple', 'blue', 'green', 'orange', 'skyblue'],
+          secondaryMessages: ['再考虑一下吧？', '确定不打开看看吗？'],
+          notes: [],
+          activeNotes: 0,
+          MAX_NOTES: 200,
+          initialNotesCount: 150,
+          noteIdCounter: 0,
+        },
+        mounted() {
+          window.addEventListener('resize', this.handleResize);
+        },
+        beforeDestroy() {
+          window.removeEventListener('resize', this.handleResize);
+        },
+        methods: {
+          handleInitialConfirm() {
+            this.initialConfirmGrowing = true;
+            setTimeout(() => {
+              this.startPopup();
+            }, 300);
+          },
+
+          handleInitialCancel() {
+            this.giftMessage = '真的不查收吗？';
+            this.showSecondaryButtons = true;
+          },
+          handleNewConfirm() {
+            this.newConfirmGrowing = true;
+            setTimeout(() => {
+              this.startPopup();
+            }, 300);
+          },
+
+          handleNewCancel() {
+            this.newCancelShrinking = true;
+            setTimeout(() => {
+              this.newCancelShrinking = false;
+              const randomMessage = this.secondaryMessages[Math.floor(Math.random() * this.secondaryMessages.length)];
+              this.giftMessage = randomMessage;
+            }, 300);
+          },
+
+          startPopup() {
+            this.giftContainerOpacity = 0;
+            this.giftContainerPointerEvents = 'none';
+            setTimeout(() => {
+              this.showGiftContainer = false;
+              this.showPopupContainer = true;
+              for (let i = 0; i < this.initialNotesCount; i++) {
+                setTimeout(() => {
+                  if (this.activeNotes < this.MAX_NOTES) {
+                    this.createStickyNote();
+                  }
+                }, i * 80);
+              }
+            }, 500);
+          },
+
+          createStickyNote() {
+            if (this.activeNotes >= this.MAX_NOTES) return;
+            const randomMessage = this.messages[Math.floor(Math.random() * this.messages.length)];
+            const randomTheme = this.themes[Math.floor(Math.random() * this.themes.length)];
+            const left = Math.random() * (window.innerWidth - 200);
+            const top = Math.random() * (window.innerHeight - 100);
+            const rotation = (Math.random() - 0.5) * 10;
+
+            const newNote = {
+              id: this.noteIdCounter++,
+              message: randomMessage,
+              theme: randomTheme,
+              left: left,
+              top: top,
+              rotation: rotation,
+              scale: 0.8,
+              opacity: 0,
+              show: false,
+              isClicked: false,
+              isShaking: false,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              zIndex: 1,
+            };
+
+            this.notes.push(newNote);
+            this.activeNotes++;
+            setTimeout(() => {
+              const note = this.notes.find((n) => n.id === newNote.id);
+              if (note) {
+                note.scale = 1;
+                note.opacity = 1;
+                note.show = true;
+              }
+            }, 10);
+          },
+
+          handleNoteClick(note) {
+            note.isShaking = false;
+            this.$nextTick(() => {
+              note.isShaking = true;
+            });
+            note.isClicked = true;
+            note.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.25)';
+            note.zIndex = 1001;
+          },
+
+          handleResize() {
+            this.notes.forEach((note) => {
+              const noteElement = document.querySelector(`.sticky-note:nth-child(${note.id + 1})`);
+              if (noteElement) {
+                const rect = noteElement.getBoundingClientRect();
+                let left = note.left;
+                let top = note.top;
+
+                if (rect.right > window.innerWidth) {
+                  left = window.innerWidth - rect.width - 10;
+                  note.left = left;
+                }
+                if (rect.bottom > window.innerHeight) {
+                  top = window.innerHeight - rect.height - 10;
+                  note.top = top;
+                }
+                if (rect.left < 0) {
+                  note.left = 10;
+                }
+                if (rect.top < 0) {
+                  note.top = 10;
+                }
+              }
+            });
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
